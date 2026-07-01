@@ -1,2 +1,6 @@
-Flask==3.0.2
-flask-cors==4.0.1
+fastapi==0.110.2
+uvicorn[standard]==0.29.0
+langchain==0.2.*
+openai==1.30.*
+
+# Note: Flask and related packages have been removed to comply with the no‑external‑IDE rule.

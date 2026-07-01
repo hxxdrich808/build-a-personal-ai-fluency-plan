@@ -1,28 +1,25 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from .agent import generate_fluency_plan
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI(title="AI Fluency Plan Generator")
 
-# In-memory data store for demonstration purposes
-milestones = [
-    {"id": 1, "title": "Week 1: Data Literacy Basics", "status": "pending"},
-    {"id": 2, "title": "Month 1: Model Understanding Fundamentals", "status": "pending"},
-    {"id": 3, "title": "Quarter 1: Ethical Considerations Project", "status": "pending"}
-]
+class PlanRequest(BaseModel):
+    user_input: str
 
-@app.route("/api/milestones", methods=["GET"])
-def get_milestones():
-    return jsonify(milestones)
-
-@app.route("/api/milestones/<int:mid>", methods=["PATCH"])
-def update_milestone(mid):
-    data = request.json
-    for m in milestones:
-        if m["id"] == mid:
-            m.update(data)
-            return jsonify({"message": "Milestone updated", "milestone": m})
-    return jsonify({"error": "Milestone not found"}), 404
+@app.post("/api/plan")
+async def create_plan(request: PlanRequest):
+    """
+    Generate a personalized AI fluency plan based on the user's input.
+    The request should contain a JSON body with a 'user_input' field
+    describing the user's goals or context.
+    """
+    try:
+        plan_text = generate_fluency_plan(request.user_input)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"plan": plan_text}
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
